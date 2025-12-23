@@ -396,10 +396,13 @@ socket.on("crear_partida", () => {
   }
 
   // Admin
-  io.to(game.admin).emit("pregunta_para_admin", {
-      texto: pregunta.texto,
-      numero: game.currentQuestion + 1
-  });
+    io.to(game.admin).emit("pregunta_para_admin", {
+        numero: game.currentQuestion + 1,
+        texto: pregunta.texto,
+        tipo: pregunta.tipo,
+        opciones: pregunta.opciones || []
+    });
+
 
   // Resetear ultimaCorrecta
   for (const id in game.players) game.players[id].ultimaCorrecta = null;
@@ -470,6 +473,20 @@ socket.on("respuesta_jugador", ({ gameId, jugador, respuesta }) => {
       if (id !== game.admin) io.to(id).emit("limpiar_pantalla");
     }
   });
+
+  socket.on("ir_a_pregunta", ({ gameId, numero }) => {
+  const game = games[gameId];
+  if (!game) return;
+  if (socket.id !== game.admin) return;
+
+  const index = numero - 1;
+  if (index < 0 || index >= preguntas.length) return;
+
+  console.log(`[ADMIN] Saltando a pregunta ${numero} en ${gameId}`);
+
+  game.currentQuestion = index;
+  enviarPregunta(gameId);
+});
 
   // Admin finaliza partida
     socket.on("finalizar_partida", gameId => {
