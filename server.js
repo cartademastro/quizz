@@ -7,25 +7,282 @@ const app = express();
 app.use(cors());
 
 const preguntas = [
-  // Pregunta de opción múltiple (normal)
+  // Pregunta 1
   { 
     tipo: "eleccion", // nuevo campo
     texto: "", 
     opciones: ["DANZA", "VAINA", "INDIA", "VIUDA"], 
     respuestasCorrectas: ["VIUDA"] // ahora es array
   },
+  // Pregunta 2
   { 
     tipo: "eleccion",
     texto: "", 
     opciones: ["LÓPEZ", "DÍAZ", "GÓMEZ", "VÁZQUEZ"], 
     respuestasCorrectas: ["LÓPEZ"] 
   },
-
-  // Pregunta de respuesta libre
+    // Pregunta 3
+  { 
+    tipo: "eleccion",
+    texto: "", 
+    opciones: ["DAVID BISBAL", "NATHY PELUSO", "ROCÍO JURADO"], 
+    respuestasCorrectas: ["ROCÍO JURADO"] 
+  },
+      // Pregunta 4
+  {
+    tipo: "eleccion",
+    texto: "",
+    opciones: ["A", "B"],
+    respuestasCorrectas: ["A"]
+  },
+    // Pregunta 5
+{
+    tipo: "texto",
+    texto: "",
+    respuestasCorrectas: ["BAJADA, bajada, Bajada"]
+  },
+  // Pregunta 6
+  { 
+    tipo: "eleccion",
+    texto: "", 
+    opciones: ["A", "E", "I", "O", "U"], 
+    respuestasCorrectas: ["A"] 
+  },
+  // Pregunta 7
+    {
+    tipo: "texto",
+    texto: "",
+    respuestasCorrectas: ["97"]
+  },
+    // Pregunta 8
+    {
+    tipo: "texto",
+    texto: "",
+    respuestasCorrectas: ["sus", "SUS", "Sus"]
+  },
+  // Pregunta 9
+    {
+    tipo: "texto",
+    texto: "",
+    respuestasCorrectas: ["5"]
+  },
+    // Pregunta 10
+      {
+    tipo: "texto",
+    texto: "",
+    respuestasCorrectas: ["chicago, Chicago, CHICAGO"]
+  },
+  // Pregunta 11
+    { 
+    tipo: "eleccion",
+    texto: "", 
+    opciones: ["DIFÍCIL Y ABURRIDO", "FÁCIL Y DIVERTIDO", "DIVERTIDO Y AMENO"], 
+    respuestasCorrectas: ["FÁCIL Y DIVERTIDO"] 
+  },
+  // Pregunta 12
+    {
+    tipo: "texto",
+    texto: "",
+    respuestasCorrectas: ["N", "n"]
+  },
+  // Pregunta 13
+    { 
+    tipo: "eleccion",
+    texto: "", 
+    opciones: ["Derecha", "Izquierda"], 
+    respuestasCorrectas: ["Derecha"] 
+  },
+    // Pregunta 14
+    { 
+    tipo: "eleccion",
+    texto: "", 
+    opciones: ["1", "2", "Los dos a la vez"], 
+    respuestasCorrectas: ["Los dos a la vez"] 
+  },
+      // Pregunta 15
+    { 
+    tipo: "eleccion",
+    texto: "", 
+    opciones: ["J", "S", "V"], 
+    respuestasCorrectas: ["S"] 
+  },
+        // Pregunta 16
+    { 
+    tipo: "eleccion",
+    texto: "", 
+    opciones: ["Norte","Este", "Sur",  "Oeste"], 
+    respuestasCorrectas: ["Oeste"] 
+  },
+  // Pregunta 17
+    { 
+    tipo: "texto", // tipo "texto"
+    texto: "",
+    respuestasCorrectas: ["365"]
+  },
+  // Pregunta 18
+    { 
+    tipo: "eleccion",
+    texto: "", 
+    opciones: ["A", "H", "M", "J", "O", "P", "F"], 
+    respuestasCorrectas: ["F"] 
+  },
+    // Pregunta 19
+{ 
+    tipo: "texto", // tipo "texto"
+    texto: "",
+    respuestasCorrectas: ["5"]
+  },
+  // Pregunta 20
   { 
     tipo: "texto", // tipo "texto"
-    texto: "Escribe el nombre del planeta rojo",
-    respuestasCorrectas: ["marte", "mars"] // acepta varias alternativas
+    texto: "",
+    respuestasCorrectas: ["AMIGO", "Amigo", "amigo"]
+  },
+    // Pregunta 21
+  { 
+    tipo: "texto", // tipo "texto"
+    texto: "Escribe el resultado x-x",
+    respuestasCorrectas: ["43-90", "43 - 90"]
+  },
+    // Pregunta 22
+  { 
+    tipo: "texto", // tipo "texto"
+    texto: "",
+    respuestasCorrectas: ["SSSSSS", "ssssss", "Ssssss"]
+  },
+      // Pregunta 23
+  { 
+    tipo: "texto", // tipo "texto"
+    texto: "",
+    respuestasCorrectas: ["2", "Dos", "dos"]
+  },
+    // Pregunta 24
+    { 
+    tipo: "eleccion",
+    texto: "", 
+    opciones: ["A(azul)", "L(rojo)", "O(rojo)", "Z(azul)", "L(azul)", "A(rojo)"], 
+    respuestasCorrectas: ["L(rojo)"] 
+  },
+      // Pregunta 25
+    { 
+    tipo: "texto", // tipo "texto"
+    texto: "",
+    respuestasCorrectas: ["MIL", "mil", "Mil", "1.000", "1000"]
+  },
+  // Pregunta 26
+    { 
+    tipo: "eleccion",
+    texto: "", 
+    opciones: ["Aitana", "Rosalía", "Malú"], 
+    respuestasCorrectas: ["Rosalía"] 
+  },
+  // Pregunta 27
+    { 
+    tipo: "texto", // tipo "texto"
+    texto: "",
+    respuestasCorrectas: ["XVII", "xvii", "17"]
+  },
+    // Pregunta 28
+    { 
+    tipo: "texto", // tipo "texto"
+    texto: "",
+    respuestasCorrectas: ["3", "tres", "TRES", "Tres"]
+  },
+  //Pregunta 29
+{ 
+    tipo: "eleccion",
+    texto: "", 
+    opciones: ["Alegre", "Escrito", "Laberinto", "Cuaderno"], 
+    respuestasCorrectas: ["Laberinto"] 
+  },
+    // Pregunta 30
+{ 
+    tipo: "texto", // tipo "texto"
+    texto: "",
+    respuestasCorrectas: ["3", "tres", "TRES", "Tres"]
+  },
+  // Pregunta 31
+  { 
+    tipo: "eleccion",
+    texto: "", 
+    opciones: ["1", "2", "3", "4", "5","6", "7", "8", "9", "10", "11", "12"], 
+    respuestasCorrectas: ["4"] 
+  },
+    // Pregunta 32
+  { 
+    tipo: "eleccion",
+    texto: "", 
+    opciones: ["A", "B", "C"], 
+    respuestasCorrectas: ["A"] 
+  },
+    // Pregunta 33
+    { 
+    tipo: "texto", // tipo "texto"
+    texto: "",
+    respuestasCorrectas: ["TEATRO", "Teatro", "teatro"]
+  },
+      // Pregunta 34
+    { 
+    tipo: "texto", // tipo "texto"
+    texto: "",
+    respuestasCorrectas: ["2", "Dos", "DOS", "dos"]
+  },
+    // Pregunta 35
+    { 
+    tipo: "texto", // tipo "texto"
+    texto: "",
+    respuestasCorrectas: ["BOLSO", "Bolso", "bolso"]
+  },
+      // Pregunta 36
+    { 
+    tipo: "texto", // tipo "texto"
+    texto: "",
+    respuestasCorrectas: ["Z", "z"]
+  },
+  // Pregunta 37
+    { 
+    tipo: "eleccion",
+    texto: "", 
+    opciones: ["Casilla blanca", "Casilla negra"], 
+    respuestasCorrectas: ["Casilla negra"] 
+  },
+    // Pregunta 38
+    { 
+    tipo: "texto", // tipo "texto"
+    texto: "",
+    respuestasCorrectas: ["4", "cuatro", "CUATRO", "Cuatro"]
+  },
+  // Pregunta 39
+      { 
+    tipo: "eleccion",
+    texto: "", 
+    opciones: ["2701", "2710","271"], 
+    respuestasCorrectas: ["271"] 
+  },
+  // Pregunta 40
+        { 
+    tipo: "eleccion",
+    texto: "", 
+    opciones: ["Salomé me molas", "Adán no calla con nada", "Anastasia se va a Asia","Isaac no ronca así"], 
+    respuestasCorrectas: ["Anastasia se va a Asia"] 
+  },
+  // Pregunta 41
+{ 
+    tipo: "texto", // tipo "texto"
+    texto: "",
+    respuestasCorrectas: ["100", "CIEN", "cien", "Cien"]
+  },
+  // Pregunta 42
+  { 
+    tipo: "texto", // tipo "texto"
+    texto: "",
+    respuestasCorrectas: ["D", "d"]
+  },
+    // Pregunta 43
+  { 
+    tipo: "texto", // tipo "texto"
+    texto: "",
+    respuestasCorrectas: ["9", "NUEVE", "nueve", "Nueve"]
   }
 ];
 
