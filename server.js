@@ -12,7 +12,7 @@ const preguntas = [
     tipo: "eleccion", // nuevo campo
     texto: "", 
     opciones: ["DANZA", "VAINA", "INDIA", "VIUDA"], 
-    respuestasCorrectas: ["VIUDA"] // ahora es array
+    respuestasCorrectas: ["VIUDA"]
   },
   // Pregunta 2
   { 
@@ -39,7 +39,7 @@ const preguntas = [
 {
     tipo: "texto",
     texto: "",
-    respuestasCorrectas: ["BAJADA, bajada, Bajada"]
+    respuestasCorrectas: ["BAJADA", "bajada", "Bajada"]
   },
   // Pregunta 6
   { 
@@ -70,7 +70,7 @@ const preguntas = [
       {
     tipo: "texto",
     texto: "",
-    respuestasCorrectas: ["chicago, Chicago, CHICAGO"]
+    respuestasCorrectas: ["chicago", "Chicago", "CHICAGO"]
   },
   // Pregunta 11
     { 
