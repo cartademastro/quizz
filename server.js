@@ -409,20 +409,23 @@ socket.on("crear_partida", () => {
 
   game.currentQuestion++;
 }
-socket.on("forzar_fin_pregunta", gameId => {
-    const game = games[gameId];
-    if (!game) return;
-    if (socket.id !== game.admin) return;
+socket.on("fin_tiempo_forzado", () => {
+    if(contador) clearInterval(contador);
 
-    console.log(`[ADMIN] Forzando fin de pregunta en ${gameId}`);
+    tiempoRestante = 0;
+    preguntaActiva = false;
 
-    // Avisamos SOLO a jugadores normales
-    for (const id in game.players) {
-        if (id !== game.admin) {
-            io.to(id).emit("fin_tiempo_forzado");
-        }
+    const tempJugador = document.getElementById("temporizador");
+    if(tempJugador) tempJugador.textContent = "⏹ Pregunta cerrada";
+
+    if(!soyAdmin){
+        enviarRespuesta();
     }
+
+    const radios = document.querySelectorAll('#pregunta input');
+    radios.forEach(i => i.disabled = true);
 });
+
 
 
 
