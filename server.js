@@ -5,6 +5,7 @@ const cors = require("cors");
 
 const app = express();
 app.use(cors());
+const games = {}; 
 
 const preguntas = [
   // Pregunta 1
@@ -287,8 +288,6 @@ const preguntas = [
 ];
 
 
-const games = {}; 
-
 function generarGameId() {
   return Math.random().toString(36).substring(2, 7).toUpperCase();
 }
@@ -305,6 +304,7 @@ socket.on("crear_partida", () => {
   games[gameId] = {
     admin: socket.id,
     players: {},
+    playersByName: {},
     currentQuestion: 0,
     estado: "esperando",
     respuestas: []
@@ -315,25 +315,50 @@ socket.on("crear_partida", () => {
 });
 
 
-  // JUGADOR se une
-  socket.on("unirse_partida", ({ gameId, nombre }) => {
-    const game = games[gameId];
-    if (!game) {
-      console.log(`[UNIRSE] Intento de unirse a partida inexistente: ${gameId}`);
-      return socket.emit("error", "La partida no existe");
-    }
+socket.on("unirse_partida", ({ gameId, nombre }) => {
+  const game = games[gameId];
+  if (!game) return socket.emit("error", "La partida no existe");
 
-    const nombres = Object.values(game.players).map(p => p.nombre);
-    if (nombres.includes(nombre)) {
-      console.log(`[UNIRSE] Nombre duplicado: ${nombre}`);
-      return socket.emit("nombre_duplicado", "Ese nombre ya está en la partida. Cambia tu nombre.");
-    }
+  // Reconexión: si ya existe el nombre
+  if (game.playersByName[nombre]) {
+    const oldSocketId = game.playersByName[nombre];
 
-    game.players[socket.id] = { nombre, score: 0, ultimaCorrecta: null };
+    // Transferir datos del jugador antiguo al nuevo socket
+    const oldPlayer = game.players[oldSocketId];
+    game.players[socket.id] = { ...oldPlayer, conectado: true };
+    delete game.players[oldSocketId];
+
+    game.playersByName[nombre] = socket.id;
+
     socket.join(gameId);
-    console.log(`[UNIRSE] ${nombre} se unió a ${gameId}`);
+    console.log(`[RECONNECT] ${nombre} se reconecta a ${gameId}`);
+    io.to(socket.id).emit("jugador_reconectado", {
+      score: oldPlayer.score,
+      currentQuestion: game.currentQuestion
+    });
+
+    // Avisar al resto de jugadores
     io.to(gameId).emit("jugadores_actualizados", game.players);
-  });
+    return;
+  }
+
+  // Nueva conexión
+  const nombres = Object.values(game.players).map(p => p.nombre);
+  if (nombres.includes(nombre)) {
+    return socket.emit("nombre_duplicado", "Ese nombre ya está en la partida. Cambia tu nombre.");
+  }
+
+  game.players[socket.id] = { nombre, score: 0, ultimaCorrecta: null, conectado: true };
+
+  // Inicializar array de respuestas vacío para este jugador
+  if (!game.respuestas[nombre]) game.respuestas[nombre] = [];
+
+  game.playersByName[nombre] = socket.id;
+  socket.join(gameId);
+
+  console.log(`[UNIRSE] ${nombre} se unió a ${gameId}`);
+  io.to(gameId).emit("jugadores_actualizados", game.players);
+});
 
   // ADMIN inicia partida
   socket.on("iniciar_partida", gameId => {
@@ -427,46 +452,71 @@ socket.on("fin_tiempo_forzado", () => {
 });
 
 
-
-
+// JUGADOR envía respuesta
 socket.on("respuesta_jugador", ({ gameId, jugador, respuesta }) => {
-    const game = games[gameId];
-    if (!game) return;
+  const game = games[gameId];
+  if (!game) return;
 
-    const playerObj = Object.values(game.players).find(p => p.nombre === jugador);
-    if (!playerObj) return;
+  const playerObj = Object.values(game.players).find(p => p.nombre === jugador);
+  if (!playerObj) return;
 
-    const preguntaActual = preguntas[game.currentQuestion - 1];
-    let correcto = false;
+  const preguntaActual = preguntas[game.currentQuestion - 1];
+  if (!preguntaActual) return; // <-- Protección extra
 
-    if (preguntaActual.tipo === "eleccion") {
-        // Comparación normal de elección
-        correcto = preguntaActual.respuestasCorrectas.includes(respuesta);
-    } else if (preguntaActual.tipo === "texto") {
-        // Convertimos a minúsculas y comparamos con todas las respuestas correctas
-        const respLower = (respuesta || "").trim().toLowerCase();
-        correcto = preguntaActual.respuestasCorrectas.some(r => r.toLowerCase() === respLower);
-    }
+  let correcto = false;
 
-    // Guardamos la respuesta y puntuación SOLO al final
-    playerObj.ultimaCorrecta = correcto;
+  if (preguntaActual.tipo === "eleccion") {
+      correcto = preguntaActual.respuestasCorrectas.includes(respuesta);
+  } else if (preguntaActual.tipo === "texto") {
+      const respLower = (respuesta || "").trim().toLowerCase();
+      correcto = preguntaActual.respuestasCorrectas.some(r => r.toLowerCase() === respLower);
+  }
 
-    if (correcto) playerObj.score += 1; // Sumar puntos al final
+  playerObj.ultimaCorrecta = correcto;
+  if (correcto) playerObj.score += 1;
 
-    if (!game.respuestas[playerObj.nombre]) game.respuestas[playerObj.nombre] = [];
-    game.respuestas[playerObj.nombre][game.currentQuestion - 1] = correcto ? 1 : 0;
+  // Guardar la respuesta real
+  if (!game.respuestas[playerObj.nombre]) game.respuestas[playerObj.nombre] = [];
+  game.respuestas[playerObj.nombre][game.currentQuestion - 1] = respuesta;  
 
-    io.to(socket.id).emit("resultado_individual", { correcto, score: playerObj.score });
+  io.to(socket.id).emit("resultado_individual", { correcto, score: playerObj.score });
 
-    const ranking = Object.values(game.players)
-        .sort((a,b) => b.score - a.score)
-        .map(p => ({ nombre: p.nombre, score: p.score }));
+  // Calcular ranking
+  const ranking = Object.values(game.players)
+      .sort((a,b) => b.score - a.score)
+      .map(p => ({ nombre: p.nombre, score: p.score }));
 
-    io.to(game.admin).emit("ranking_actual", ranking);
-    io.to(game.admin).emit("respuestas_detalle", game.respuestas);
+  // Enviar ranking
+  io.to(game.admin).emit("ranking_actual", ranking);
+
+  // Enviar detalle de respuestas al admin
+  const detalleRespuestas = {};
+  for (const id in game.players) {
+      const p = game.players[id];
+      // Protección contra índices inexistentes
+      detalleRespuestas[p.nombre] = game.respuestas[p.nombre][game.currentQuestion - 1] || null;
+  }
+
+  // Para preguntas de elección, contar cuántos eligieron cada opción
+  let opcionesConteo = null;
+  if (preguntaActual.tipo === "eleccion") {
+      opcionesConteo = {};
+      for (const opt of preguntaActual.opciones) {
+          opcionesConteo[opt] = 0;
+      }
+      for (const jugador in game.respuestas) {
+          const r = game.respuestas[jugador][game.currentQuestion - 1];
+          if (r && opcionesConteo[r] !== undefined) opcionesConteo[r]++;
+      }
+  }
+
+  io.to(game.admin).emit("respuestas_detalle", {
+      pregunta: preguntaActual.texto,
+      tipo: preguntaActual.tipo,
+      respuestasPorJugador: detalleRespuestas,
+      conteoOpciones: opcionesConteo
+  });
 });
-
-
 
   // Limpiar pantalla
   socket.on("limpiar_jugadores", gameId => {
@@ -511,14 +561,22 @@ socket.on("ir_a_pregunta", ({ gameId, numero }) => {
     });
 
 
-  socket.on("disconnect", () => {
-    console.log("[DESCONECTADO] Usuario desconectado:", socket.id);
-    for (const gameId in games) {
-      if (games[gameId].players[socket.id]) {
-        delete games[gameId].players[socket.id];
-      }
+socket.on("disconnect", () => {
+  console.log("[DESCONECTADO] Usuario desconectado:", socket.id);
+  for (const gameId in games) {
+    const game = games[gameId];
+    if (game.players[socket.id]) {
+      const nombre = game.players[socket.id].nombre;
+      game.players[socket.id].conectado = false;
+
+      // Avisar al jugador que se desconectó
+      io.to(gameId).emit("jugador_desconectado", { nombre });
+
+      // No borramos para que pueda reconectar
+      console.log(`[DESCONECTADO] ${nombre} queda marcado como desconectado en ${gameId}`);
     }
-  });
+  }
+});
 });
 
 server.listen(3000, () => console.log("Servidor escuchando en puerto 3000"));
